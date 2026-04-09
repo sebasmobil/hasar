@@ -53,14 +53,6 @@ html,body{
 .login-error{color:var(--agir);font-size:11px;font-family:'IBM Plex Mono',monospace;margin-top:10px;display:none;padding:8px 10px;background:rgba(232,38,38,.07);border:1px solid rgba(232,38,38,.2);}
 .login-corner{position:absolute;bottom:-1px;right:-1px;width:20px;height:20px;border-bottom:3px solid var(--accent);border-right:3px solid var(--accent);}
 
-/* ─── VERI MODAL ─── */
-#dataModal{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:2000;backdrop-filter:blur(6px);}
-.modal-box{position:relative;width:400px;max-width:96vw;background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--accent2);padding:40px 36px 36px;animation:slideUp .35s ease both;}
-.modal-icon{font-size:32px;margin-bottom:12px;}
-.modal-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;margin-bottom:4px;}
-.modal-sub{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:24px;border-left:2px solid var(--accent2);padding-left:10px;}
-.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;}
-.modal-close:hover{color:var(--text);}
 .spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px;}
 @keyframes spin{to{transform:rotate(360deg)}}
 
@@ -179,32 +171,18 @@ tbody td.mono{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--m
       <label>Parola</label>
       <input type="password" id="loginPass" placeholder="••••••" autocomplete="current-password">
     </div>
-    <button class="login-btn" id="loginBtn" onclick="doLogin()">GİRİŞ YAP</button>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">GİRİŞ YAP & GİTHUB'TAN VERİ YÜKLE</button>
     <div class="login-error" id="loginError"></div>
     <div class="login-corner"></div>
   </div>
 </div>
 
-<!-- ─── VERİ YÜKLEME MODALI ─── -->
-<div id="dataModal">
-  <div class="modal-box">
-    <button class="modal-close" onclick="closeModal()">✕</button>
-    <div class="modal-icon">📂</div>
-    <div class="modal-title">KİTAPTAN VERİ YÜKLE</div>
-    <div class="modal-sub">Veri erişim şifresini girin</div>
-    <div class="field">
-      <label>Veri Şifresi</label>
-      <input type="password" id="dataPass" placeholder="••••" autocomplete="off">
-    </div>
-    <button class="login-btn" id="dataBtn" onclick="doDataLoad()" style="background:var(--accent2);color:#111">VERİLERİ YÜKLE</button>
-    <div class="login-error" id="dataError"></div>
-  </div>
-</div>
+
 
 <!-- ─── LOADING ─── -->
 <div id="loadingOverlay">
   <div class="ld-spin"></div>
-  <div class="ld-text">VERİ YÜKLENİYOR...</div>
+  <div class="ld-text">GİTHUB'TAN VERİLER YÜKLENİYOR...</div>
 </div>
 
 <!-- ─── ANA UYGULAMA ─── -->
@@ -281,13 +259,11 @@ tbody td.mono{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--m
     u: [65,76,92,68,87,71,68,78,276,87],
     // "hasar" → XOR 37
     p: [77,68,86,68,87],
-    // "2112" → XOR 37
-    dp:[23,20,20,23],
     // GitHub raw URL → XOR 37
     gh:[77,81,81,85,86,31,10,10,87,68,82,11,66,76,81,77,80,71,80,86,64,87,70,74,75,81,64,75,81,11,70,74,72,10,86,64,71,68,86,72,74,71,76,73,10,77,68,86,68,87,10,72,68,76,75,10,77,68,86,68,87,11,93,73,86,93]
   };
   const dec = arr => arr.map(c => String.fromCharCode(c ^ _k)).join('');
-  window._auth = { u: dec(_d.u), p: dec(_d.p), dp: dec(_d.dp), gh: dec(_d.gh) };
+  window._auth = { u: dec(_d.u), p: dec(_d.p), gh: dec(_d.gh) };
 })();
 
 // ════════════════════════════════════════════════════
@@ -299,7 +275,7 @@ const PER=50;
 // ════════════════════════════════════════════════════
 // GİRİŞ
 // ════════════════════════════════════════════════════
-function doLogin(){
+async function doLogin(){
   const u = norm(document.getElementById('loginUser').value);
   const p = document.getElementById('loginPass').value;
   if(u !== _auth.u || p !== _auth.p){
@@ -307,30 +283,10 @@ function doLogin(){
     document.getElementById('loginPass').value='';
     return;
   }
-  // Kimlik doğru → veri modalını aç
   document.getElementById('loginPass').value='';
-  document.getElementById('dataPass').value='';
-  document.getElementById('dataError').style.display='none';
-  document.getElementById('dataModal').style.display='flex';
-  setTimeout(()=>document.getElementById('dataPass').focus(),120);
-}
-
-function norm(s){ return s.trim().toLowerCase().replace(/i̇/g,'i').replace(/İ/g,'i'); }
-
-function closeModal(){
-  document.getElementById('dataModal').style.display='none';
-  // Giriş ekranına geri dön
-}
-
-async function doDataLoad(){
-  const dp = document.getElementById('dataPass').value;
-  if(dp !== _auth.dp){
-    showErr('dataError','❌ Veri şifresi hatalı.');
-    document.getElementById('dataPass').value='';
-    return;
-  }
-  document.getElementById('dataModal').style.display='none';
-  document.getElementById('dataPass').value='';
+  const btn=document.getElementById('loginBtn');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span>GİTHUB\'TAN YÜKLÜYOR...';
   loading(true);
   try{
     allData = await fetchXlsx(_auth.gh);
@@ -338,12 +294,17 @@ async function doDataLoad(){
     document.getElementById('app').style.display='block';
     buildFilters();
     applyFilters();
-    toast('✓ '+allData.length.toLocaleString('tr')+' kayıt yüklendi.');
+    toast('✅ Veriler yüklendi — '+allData.length.toLocaleString('tr')+' kayıt.');
   }catch(e){
     showErr('loginError','❌ Veri yüklenemedi: '+e.message);
-    document.getElementById('loginScreen').style.display='flex';
-  }finally{ loading(false); }
+  }finally{
+    btn.disabled=false;
+    btn.innerHTML='GİRİŞ YAP & GİTHUB\'TAN VERİ YÜKLE';
+    loading(false);
+  }
 }
+
+function norm(s){ return s.trim().toLowerCase().replace(/i̇/g,'i').replace(/İ/g,'i'); }
 
 function doLogout(){
   allData=[];filtered=[];sortKey='';sortAsc=true;pg=1;
@@ -545,7 +506,7 @@ function toast(msg,err=false){
 // Enter tuşları
 document.getElementById('loginUser').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginPass').focus();});
 document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-document.getElementById('dataPass').addEventListener('keydown', e=>{if(e.key==='Enter')doDataLoad();});
+
 </script>
 </body>
 </html>
