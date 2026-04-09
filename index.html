@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>2023 Deprem Hasar Takip Sistemi</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#0a0c10;--surface:#111318;--surface2:#1a1d24;--border:#2a2d35;
+  --accent:#e85d26;--accent2:#f5a623;--text:#e8e8e0;--muted:#6b7080;
+  --agir:#e82626;--orta:#e8a026;--hafif:#26b5e8;--hasarsiz:#26e87a;--yikilmis:#8b26e8;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{
+  background:var(--bg);color:var(--text);
+  font-family:'IBM Plex Sans',sans-serif;
+  min-height:100vh;overflow-x:hidden;
+  -webkit-text-size-adjust:100%;
+  touch-action:pan-x pan-y;
+}
+
+/* ─── LOGIN ─── */
+#loginScreen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000;overflow-y:auto;}
+.login-bg{position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 80%,rgba(232,93,38,.14) 0%,transparent 70%),radial-gradient(ellipse 40% 60% at 80% 20%,rgba(245,166,35,.09) 0%,transparent 70%);pointer-events:none;}
+.login-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(42,45,53,.35) 1px,transparent 1px),linear-gradient(90deg,rgba(42,45,53,.35) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}
+.login-box{position:relative;width:420px;max-width:96vw;background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--accent);padding:44px 38px 38px;animation:slideUp .5s cubic-bezier(.16,1,.3,1) both;margin:20px auto;}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.login-logo{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:4px;color:var(--accent);margin-bottom:8px;}
+.login-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;line-height:1.1;margin-bottom:4px;}
+.login-sub{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:28px;border-left:2px solid var(--accent);padding-left:10px;}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:6px;}
+.field input{
+  width:100%;background:var(--bg);border:1px solid var(--border);
+  color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:16px;
+  padding:11px 14px;outline:none;transition:border-color .2s;
+  -webkit-appearance:none;border-radius:0;
+}
+.field input:focus{border-color:var(--accent);}
+.field input::placeholder{color:var(--muted);opacity:.4;font-size:14px;}
+.login-btn{
+  width:100%;background:var(--accent);color:#fff;border:none;
+  font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;
+  padding:14px;cursor:pointer;transition:background .2s,transform .1s;margin-top:8px;
+  -webkit-appearance:none;border-radius:0;
+}
+.login-btn:hover{background:#c94e1e;}
+.login-btn:active{transform:scale(.98);}
+.login-btn:disabled{opacity:.5;cursor:not-allowed;}
+.login-error{color:var(--agir);font-size:11px;font-family:'IBM Plex Mono',monospace;margin-top:10px;display:none;padding:8px 10px;background:rgba(232,38,38,.07);border:1px solid rgba(232,38,38,.2);}
+.login-corner{position:absolute;bottom:-1px;right:-1px;width:20px;height:20px;border-bottom:3px solid var(--accent);border-right:3px solid var(--accent);}
+
+/* ─── VERI MODAL ─── */
+#dataModal{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:2000;backdrop-filter:blur(6px);}
+.modal-box{position:relative;width:400px;max-width:96vw;background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--accent2);padding:40px 36px 36px;animation:slideUp .35s ease both;}
+.modal-icon{font-size:32px;margin-bottom:12px;}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;margin-bottom:4px;}
+.modal-sub{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:24px;border-left:2px solid var(--accent2);padding-left:10px;}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;}
+.modal-close:hover{color:var(--text);}
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ─── APP ─── */
+#app{display:none;}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;}
+.header-brand{font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:2px;}
+.header-brand span{color:var(--accent);}
+.header-tag{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);background:var(--bg);border:1px solid var(--border);padding:3px 8px;letter-spacing:1px;margin-left:12px;}
+.logout-btn{background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px 14px;cursor:pointer;transition:all .2s;letter-spacing:1px;}
+.logout-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* Stats */
+.stats-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border);}
+.stat-card{background:var(--surface);padding:18px 20px;position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;}
+.stat-card.agir::before{background:var(--agir);}
+.stat-card.orta::before{background:var(--orta);}
+.stat-card.hafif::before{background:var(--hafif);}
+.stat-card.hasarsiz::before{background:var(--hasarsiz);}
+.stat-card.total::before{background:var(--accent);}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:36px;line-height:1;margin-bottom:3px;}
+.stat-card.agir .stat-num{color:var(--agir);}
+.stat-card.orta .stat-num{color:var(--orta);}
+.stat-card.hafif .stat-num{color:var(--hafif);}
+.stat-card.hasarsiz .stat-num{color:var(--hasarsiz);}
+.stat-card.total .stat-num{color:var(--accent);}
+.stat-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+
+/* Toolbar */
+.toolbar{display:flex;align-items:center;gap:10px;padding:16px 28px;flex-wrap:wrap;border-bottom:1px solid var(--border);background:var(--surface2);}
+.search-box{flex:1;min-width:180px;position:relative;}
+.search-box input{
+  width:100%;background:var(--bg);border:1px solid var(--border);
+  color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:16px;
+  padding:9px 14px 9px 36px;outline:none;transition:border-color .2s;
+  -webkit-appearance:none;border-radius:0;
+}
+.search-box input:focus{border-color:var(--accent);}
+.search-box::before{content:'⌕';position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:17px;pointer-events:none;}
+.filter-select{
+  background:var(--bg);border:1px solid var(--border);color:var(--text);
+  font-family:'IBM Plex Sans',sans-serif;font-size:13px;
+  padding:9px 12px;outline:none;cursor:pointer;transition:border-color .2s;
+  min-width:145px;-webkit-appearance:none;border-radius:0;
+}
+.filter-select:focus{border-color:var(--accent);}
+.refresh-btn{background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:9px 14px;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.refresh-btn:hover{border-color:var(--accent2);color:var(--accent2);}
+.record-count{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-left:auto;white-space:nowrap;}
+
+/* Table */
+.table-wrap{padding:20px 28px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:11px 14px;text-align:left;border-bottom:1px solid var(--border);background:var(--surface);cursor:pointer;white-space:nowrap;user-select:none;transition:color .2s;}
+thead th:hover{color:var(--accent);}
+thead th.sorted{color:var(--accent2);}
+tbody tr{border-bottom:1px solid rgba(42,45,53,.6);transition:background .15s;}
+tbody tr:hover{background:var(--surface2);}
+tbody td{padding:11px 14px;}
+tbody td.mono{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
+.badge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1px;padding:3px 9px;border:1px solid;text-transform:uppercase;white-space:nowrap;}
+.badge-agir{color:var(--agir);border-color:rgba(232,38,38,.4);background:rgba(232,38,38,.06);}
+.badge-orta{color:var(--orta);border-color:rgba(232,160,38,.4);background:rgba(232,160,38,.06);}
+.badge-hafif{color:var(--hafif);border-color:rgba(38,181,232,.4);background:rgba(38,181,232,.06);}
+.badge-hasarsiz{color:var(--hasarsiz);border-color:rgba(38,232,122,.4);background:rgba(38,232,122,.06);}
+.badge-yikilmis{color:var(--yikilmis);border-color:rgba(139,38,232,.4);background:rgba(139,38,232,.06);}
+.badge-diger{color:var(--muted);border-color:var(--border);background:transparent;}
+
+/* Empty */
+.empty-state{text-align:center;padding:70px 28px;display:none;}
+.empty-icon{font-size:44px;margin-bottom:14px;opacity:.3;}
+.empty-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--muted);margin-bottom:6px;}
+.empty-sub{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);opacity:.6;}
+
+/* Pagination */
+.pagination{display:flex;align-items:center;justify-content:center;gap:6px;padding:20px 28px;border-top:1px solid var(--border);flex-wrap:wrap;}
+.page-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px 12px;cursor:pointer;transition:all .2s;}
+.page-btn:hover{border-color:var(--accent);color:var(--accent);}
+.page-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.page-btn:disabled{opacity:.3;cursor:not-allowed;}
+
+/* Loading overlay */
+#loadingOverlay{position:fixed;inset:0;background:rgba(10,12,16,.9);display:none;align-items:center;justify-content:center;z-index:3000;flex-direction:column;gap:14px;backdrop-filter:blur(4px);}
+.ld-spin{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+.ld-text{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:3px;}
+
+/* Toast */
+#toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:11px 16px;z-index:9999;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;max-width:340px;line-height:1.5;}
+#toast.show{opacity:1;transform:translateY(0);}
+#toast.err{border-left-color:var(--agir);}
+
+@media(max-width:700px){
+  .stats-bar{grid-template-columns:repeat(3,1fr);}
+  .toolbar,.table-wrap{padding:12px 14px;}
+  header{padding:0 14px;}
+  .header-tag{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- ─── GİRİŞ EKRANI ─── -->
+<div id="loginScreen">
+  <div class="login-bg"></div>
+  <div class="login-grid"></div>
+  <div class="login-box">
+    <div class="login-logo">T.C. AFAD — HASAR TESPİT SİSTEMİ</div>
+    <div class="login-title">2023 DEPREM<br>HASAR TAKİP</div>
+    <div class="login-sub">Kahramanmaraş Merkezli Depremler · Güvenli Erişim</div>
+    <div class="field">
+      <label>Kullanıcı Adı</label>
+      <input type="text" id="loginUser" placeholder="kullanıcı adı" autocomplete="off" spellcheck="false" inputmode="text">
+    </div>
+    <div class="field">
+      <label>Parola</label>
+      <input type="password" id="loginPass" placeholder="••••••" autocomplete="current-password">
+    </div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">GİRİŞ YAP</button>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-corner"></div>
+  </div>
+</div>
+
+<!-- ─── VERİ YÜKLEME MODALI ─── -->
+<div id="dataModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-icon">📂</div>
+    <div class="modal-title">KİTAPTAN VERİ YÜKLE</div>
+    <div class="modal-sub">Veri erişim şifresini girin</div>
+    <div class="field">
+      <label>Veri Şifresi</label>
+      <input type="password" id="dataPass" placeholder="••••" autocomplete="off">
+    </div>
+    <button class="login-btn" id="dataBtn" onclick="doDataLoad()" style="background:var(--accent2);color:#111">VERİLERİ YÜKLE</button>
+    <div class="login-error" id="dataError"></div>
+  </div>
+</div>
+
+<!-- ─── LOADING ─── -->
+<div id="loadingOverlay">
+  <div class="ld-spin"></div>
+  <div class="ld-text">VERİ YÜKLENİYOR...</div>
+</div>
+
+<!-- ─── ANA UYGULAMA ─── -->
+<div id="app">
+  <header>
+    <div style="display:flex;align-items:center">
+      <div class="header-brand">HASAR<span>TAKİP</span></div>
+      <div class="header-tag">2023 DEPREMİ</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button class="refresh-btn" onclick="refreshData()" style="font-size:14px;padding:6px 12px;">↻</button>
+      <button class="logout-btn" onclick="doLogout()">ÇIKIŞ YAP</button>
+    </div>
+  </header>
+
+  <div class="stats-bar">
+    <div class="stat-card total">  <div class="stat-num" id="sTotal">0</div>  <div class="stat-label">Toplam</div></div>
+    <div class="stat-card agir">   <div class="stat-num" id="sAgir">0</div>   <div class="stat-label">Ağır Hasarlı</div></div>
+    <div class="stat-card orta">   <div class="stat-num" id="sOrta">0</div>   <div class="stat-label">Orta Hasarlı</div></div>
+    <div class="stat-card hafif">  <div class="stat-num" id="sHafif">0</div>  <div class="stat-label">Az Hasarlı</div></div>
+    <div class="stat-card hasarsiz"><div class="stat-num" id="sHasarsiz">0</div><div class="stat-label">Hasarsız/Diğer</div></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Bina adı, semt veya abone no ile ara..." oninput="applyFilters()">
+    </div>
+    <select class="filter-select" id="semtFilter" onchange="applyFilters()">
+      <option value="">Tüm Semtler</option>
+    </select>
+    <select class="filter-select" id="hasarFilter" onchange="applyFilters()">
+      <option value="">Tüm Hasar Durumları</option>
+      <option value="agir">Ağır Hasarlı</option>
+      <option value="orta">Orta Hasarlı</option>
+      <option value="hafif">Az Hasarlı</option>
+      <option value="hasarsiz">Hasarsız</option>
+      <option value="yikilmis">Yıkılmış</option>
+    </select>
+    <div class="record-count" id="recordCount">— kayıt</div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th onclick="srt('semt')">SEMT ↕</th>
+        <th onclick="srt('abone')">ABONE NO ↕</th>
+        <th onclick="srt('binaKod')">BİNA KODU ↕</th>
+        <th onclick="srt('binaAdi')">BİNA ADI ↕</th>
+        <th onclick="srt('hasar')">HASAR DURUMU ↕</th>
+      </tr></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">📋</div>
+      <div class="empty-title">KAYIT BULUNAMADI</div>
+      <div class="empty-sub">Arama veya filtre kriterlerini değiştirin</div>
+    </div>
+  </div>
+  <div class="pagination" id="pagination"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════
+// KİMLİK BİLGİLERİ — XOR kodlama ile gizlenmiş
+// Kodda düz metin olarak yer almaz
+// ════════════════════════════════════════════════════
+(function(){
+  // XOR şifreli veri paketi — key 37
+  const _k = 37;
+  const _d = {
+    // "diyarbakır" → XOR 37
+    u: [65,76,92,68,87,71,68,78,276,87],
+    // "hasar" → XOR 37
+    p: [77,68,86,68,87],
+    // "2112" → XOR 37
+    dp:[23,20,20,23],
+    // GitHub raw URL → XOR 37
+    gh:[77,81,81,85,86,31,10,10,87,68,82,11,66,76,81,77,80,71,80,86,64,87,70,74,75,81,64,75,81,11,70,74,72,10,86,64,71,68,86,72,74,71,76,73,10,77,68,86,68,87,10,72,68,76,75,10,77,68,86,68,87,11,93,73,86,93]
+  };
+  const dec = arr => arr.map(c => String.fromCharCode(c ^ _k)).join('');
+  window._auth = { u: dec(_d.u), p: dec(_d.p), dp: dec(_d.dp), gh: dec(_d.gh) };
+})();
+
+// ════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════
+let allData=[], filtered=[], sortKey='', sortAsc=true, pg=1;
+const PER=50;
+
+// ════════════════════════════════════════════════════
+// GİRİŞ
+// ════════════════════════════════════════════════════
+function doLogin(){
+  const u = norm(document.getElementById('loginUser').value);
+  const p = document.getElementById('loginPass').value;
+  if(u !== _auth.u || p !== _auth.p){
+    showErr('loginError','❌ Kullanıcı adı veya parola hatalı.');
+    document.getElementById('loginPass').value='';
+    return;
+  }
+  // Kimlik doğru → veri modalını aç
+  document.getElementById('loginPass').value='';
+  document.getElementById('dataPass').value='';
+  document.getElementById('dataError').style.display='none';
+  document.getElementById('dataModal').style.display='flex';
+  setTimeout(()=>document.getElementById('dataPass').focus(),120);
+}
+
+function norm(s){ return s.trim().toLowerCase().replace(/i̇/g,'i').replace(/İ/g,'i'); }
+
+function closeModal(){
+  document.getElementById('dataModal').style.display='none';
+  // Giriş ekranına geri dön
+}
+
+async function doDataLoad(){
+  const dp = document.getElementById('dataPass').value;
+  if(dp !== _auth.dp){
+    showErr('dataError','❌ Veri şifresi hatalı.');
+    document.getElementById('dataPass').value='';
+    return;
+  }
+  document.getElementById('dataModal').style.display='none';
+  document.getElementById('dataPass').value='';
+  loading(true);
+  try{
+    allData = await fetchXlsx(_auth.gh);
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('app').style.display='block';
+    buildFilters();
+    applyFilters();
+    toast('✓ '+allData.length.toLocaleString('tr')+' kayıt yüklendi.');
+  }catch(e){
+    showErr('loginError','❌ Veri yüklenemedi: '+e.message);
+    document.getElementById('loginScreen').style.display='flex';
+  }finally{ loading(false); }
+}
+
+function doLogout(){
+  allData=[];filtered=[];sortKey='';sortAsc=true;pg=1;
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('loginUser').value='';
+  document.getElementById('tableBody').innerHTML='';
+  document.getElementById('pagination').innerHTML='';
+}
+
+// ════════════════════════════════════════════════════
+// VERİ ÇEKME
+// ════════════════════════════════════════════════════
+async function fetchXlsx(url){
+  const r = await fetch(url+'?_='+Date.now());
+  if(!r.ok) throw new Error('HTTP '+r.status+' — URL erişim hatası.');
+  const isCSV = url.toLowerCase().endsWith('.csv');
+  if(isCSV){
+    return parseCSV(await r.text());
+  }else{
+    const wb = XLSX.read(await r.arrayBuffer(),{type:'array'});
+    return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+  }
+}
+
+async function refreshData(){
+  loading(true);
+  try{
+    allData = await fetchXlsx(_auth.gh);
+    buildFilters();
+    applyFilters();
+    toast('↻ '+allData.length.toLocaleString('tr')+' kayıt yenilendi.');
+  }catch(e){ toast('❌ '+e.message,true); }
+  finally{ loading(false); }
+}
+
+function parseCSV(text){
+  const lines=text.replace(/\r/g,'').split('\n');
+  const hdr=csvSplit(lines[0]);
+  return lines.slice(1).filter(l=>l.trim()).map(l=>{
+    const v=csvSplit(l),o={};
+    hdr.forEach((h,i)=>o[h.trim()]=(v[i]||'').trim());
+    return o;
+  });
+}
+function csvSplit(line){
+  const r=[];let c='',q=false;
+  for(const ch of line){if(ch==='"'){q=!q}else if(ch===','&&!q){r.push(c);c=''}else c+=ch;}
+  r.push(c);return r;
+}
+
+// ════════════════════════════════════════════════════
+// ALAN OKUYUCU — esnek sütun adı desteği
+// ════════════════════════════════════════════════════
+function getF(row){
+  const pick=(...keys)=>{
+    for(const k of keys) if(row[k]!==undefined&&String(row[k]).trim()!=='') return String(row[k]).trim();
+    const lk=keys.map(k=>k.toLowerCase().replace(/\s/g,''));
+    for(const rk of Object.keys(row)){
+      const lrk=rk.toLowerCase().replace(/\s/g,'');
+      if(lk.includes(lrk)&&String(row[rk]).trim()!=='') return String(row[rk]).trim();
+    }
+    return '—';
+  };
+  return {
+    semt   : pick('SEMTADI','Semtadı','semtadi','SEMT','SemtAdi'),
+    abone  : pick('E_ABONENO','AboneNo','aboneno','ABONE NO','aboneno'),
+    binaKod: pick('BİNA KODU','BINA KODU','BinKodu','bina kodu','BINAKODU','BinaKodu'),
+    binaAdi: pick('CF_BINAADI','BINAADI','binaadi','BİNA ADI','BinaAdi'),
+    hasar  : pick('HASAR DURMU','HASAR DURUMU','hasardurmu','HASARDURUMU','HasarDurumu'),
+  };
+}
+
+function hasarKey(v){
+  if(!v||v==='—') return 'diger';
+  const s=v.toLowerCase();
+  if(s.includes('ağır')||s.includes('agir')) return 'agir';
+  if(s.includes('orta'))                     return 'orta';
+  if(s.includes('az ')||s.includes('hafif')) return 'hafif';
+  if(s.includes('hasarsız')||s.includes('hasarsiz')) return 'hasarsiz';
+  if(s.includes('yık')||s.includes('yikilmis'))      return 'yikilmis';
+  return 'diger';
+}
+
+// ════════════════════════════════════════════════════
+// FİLTRE / SIRALAMA
+// ════════════════════════════════════════════════════
+function applyFilters(){
+  const q    =(document.getElementById('searchInput').value||'').toLowerCase();
+  const semt  =document.getElementById('semtFilter').value;
+  const hasar =document.getElementById('hasarFilter').value;
+
+  filtered=allData.filter(row=>{
+    const f=getF(row);
+    const mQ=!q||[f.semt,f.binaAdi,f.abone,f.binaKod].some(v=>v.toLowerCase().includes(q));
+    const mS=!semt||f.semt===semt;
+    const mH=!hasar||hasarKey(f.hasar)===hasar;
+    return mQ&&mS&&mH;
+  });
+
+  if(sortKey){
+    filtered.sort((a,b)=>{
+      const av=getF(a)[sortKey].toLowerCase();
+      const bv=getF(b)[sortKey].toLowerCase();
+      return sortAsc?av.localeCompare(bv,'tr'):bv.localeCompare(av,'tr');
+    });
+  }
+
+  updateStats();
+  pg=1;
+  renderTable();
+  renderPag();
+}
+
+function srt(key){
+  if(sortKey===key) sortAsc=!sortAsc; else{sortKey=key;sortAsc=true;}
+  applyFilters();
+}
+
+function buildFilters(){
+  const semts=[...new Set(allData.map(r=>getF(r).semt).filter(s=>s&&s!=='—'))].sort((a,b)=>a.localeCompare(b,'tr'));
+  document.getElementById('semtFilter').innerHTML='<option value="">Tüm Semtler</option>'+semts.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');
+}
+
+function updateStats(){
+  const c={agir:0,orta:0,hafif:0,hasarsiz:0};
+  allData.forEach(r=>{const k=hasarKey(getF(r).hasar);if(k==='agir')c.agir++;else if(k==='orta')c.orta++;else if(k==='hafif')c.hafif++;else c.hasarsiz++;});
+  document.getElementById('sTotal').textContent   =allData.length.toLocaleString('tr');
+  document.getElementById('sAgir').textContent    =c.agir.toLocaleString('tr');
+  document.getElementById('sOrta').textContent    =c.orta.toLocaleString('tr');
+  document.getElementById('sHafif').textContent   =c.hafif.toLocaleString('tr');
+  document.getElementById('sHasarsiz').textContent=c.hasarsiz.toLocaleString('tr');
+}
+
+// ════════════════════════════════════════════════════
+// RENDER
+// ════════════════════════════════════════════════════
+function renderTable(){
+  const tbody=document.getElementById('tableBody');
+  const empty=document.getElementById('emptyState');
+  document.getElementById('recordCount').textContent=filtered.length.toLocaleString('tr')+' kayıt';
+  if(!filtered.length){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  const slice=filtered.slice((pg-1)*PER,pg*PER);
+  tbody.innerHTML=slice.map(row=>{
+    const f=getF(row),k=hasarKey(f.hasar);
+    return `<tr>
+      <td class="mono">${esc(f.semt)}</td>
+      <td class="mono">${esc(f.abone)}</td>
+      <td class="mono">${esc(f.binaKod)}</td>
+      <td>${esc(f.binaAdi)}</td>
+      <td><span class="badge badge-${k}">${esc(f.hasar)}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function renderPag(){
+  const total=Math.ceil(filtered.length/PER);
+  const el=document.getElementById('pagination');
+  if(total<=1){el.innerHTML='';return;}
+  let html=`<button class="page-btn" onclick="goPage(${pg-1})" ${pg===1?'disabled':''}>‹ Önceki</button>`;
+  const range=[];
+  for(let i=1;i<=total;i++){
+    if(i===1||i===total||Math.abs(i-pg)<=2) range.push(i);
+    else if(range[range.length-1]!=='...') range.push('...');
+  }
+  range.forEach(p=>{
+    if(p==='...') html+=`<span style="color:var(--muted);padding:0 4px;font-family:'IBM Plex Mono',monospace">…</span>`;
+    else html+=`<button class="page-btn ${p===pg?'active':''}" onclick="goPage(${p})">${p}</button>`;
+  });
+  html+=`<button class="page-btn" onclick="goPage(${pg+1})" ${pg===total?'disabled':''}>Sonraki ›</button>`;
+  el.innerHTML=html;
+}
+
+function goPage(p){
+  const total=Math.ceil(filtered.length/PER);
+  if(p<1||p>total)return;
+  pg=p;renderTable();renderPag();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ════════════════════════════════════════════════════
+// YARDIMCILAR
+// ════════════════════════════════════════════════════
+function showErr(id,msg){
+  const el=document.getElementById(id);
+  el.textContent=msg;el.style.display='block';
+  setTimeout(()=>el.style.display='none',5000);
+}
+function loading(on){document.getElementById('loadingOverlay').style.display=on?'flex':'none';}
+function toast(msg,err=false){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className=err?'show err':'show';
+  clearTimeout(el._t);el._t=setTimeout(()=>el.className='',4000);
+}
+
+// Enter tuşları
+document.getElementById('loginUser').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginPass').focus();});
+document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('dataPass').addEventListener('keydown', e=>{if(e.key==='Enter')doDataLoad();});
+</script>
+</body>
+</html>
