@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>2023 Deprem Hasar Takip Sistemi</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -19,6 +19,9 @@
   --text:#1c1a18;
   --muted:#7a7670;
   --header-h:60px;
+  --stats-h:130px;
+  --toolbar-h:53px;
+  --sticky-th-top:60px; /* sadece header — stats ve toolbar sticky değil */
 
   /* Hasar renkleri */
   --c-yikik:#8b1a1a;
@@ -114,6 +117,7 @@ header{
   display:grid;grid-template-columns:repeat(4,1fr);
   gap:1px;background:var(--border);
   border-bottom:1px solid var(--border);
+  position:sticky;top:var(--header-h);z-index:90;
 }
 .stat-card{
   background:#fff;padding:16px 18px;position:relative;overflow:hidden;
@@ -149,6 +153,7 @@ header{
   display:flex;align-items:center;gap:8px;
   padding:12px 24px;flex-wrap:wrap;
   border-bottom:1px solid var(--border);background:#fff;
+  position:sticky;top:calc(var(--header-h) + var(--stats-h));z-index:80;
 }
 .search-box{flex:1;min-width:180px;position:relative;}
 .search-box input{
@@ -183,14 +188,14 @@ header{
 .table-wrap{padding:0 24px 40px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 table{width:100%;border-collapse:collapse;font-size:13px;}
 
-/* Başlıklar sticky — header yüksekliği kadar aşağıda */
+/* Başlıklar sticky — tüm sticky elemanların altında */
 thead th{
   font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.5px;
   text-transform:uppercase;color:var(--muted);
   padding:11px 12px;text-align:left;
   background:#fff;border-bottom:2px solid var(--border);
   cursor:pointer;white-space:nowrap;user-select:none;
-  position:sticky;top:var(--header-h);z-index:10;
+  position:sticky;top:0;z-index:10; /* JS tarafından güncellenir */
   transition:color .15s;
 }
 thead th:hover{color:var(--accent);}
@@ -439,6 +444,7 @@ async function doLogin(){
     document.getElementById('app').style.display='block';
     buildFilters();
     applyFilters();
+    setTimeout(fixStickyTop, 50);
     toast('✅ '+allData.length.toLocaleString('tr')+' kayıt yüklendi.');
   }catch(e){
     showErr('loginError','❌ Veri yüklenemedi: '+e.message);
@@ -644,7 +650,7 @@ function renderTable(){
   const tbody=document.getElementById('tableBody');
   const empty=document.getElementById('emptyState');
   document.getElementById('recordCount').textContent=filtered.length.toLocaleString('tr')+' kayıt';
-  if(!filtered.length){tbody.innerHTML='';empty.style.display='block';return;}
+  if(!filtered.length){tbody.innerHTML='';empty.style.display='block';fixStickyTop();return;}
   empty.style.display='none';
   tbody.innerHTML=filtered.map((row,i)=>{
     const f=getF(row),k=hasarKey(f.hasar);
@@ -657,6 +663,7 @@ function renderTable(){
       <td><span class="badge badge-${k}">${esc(f.hasar)}</span></td>
     </tr>`;
   }).join('');
+  fixStickyTop();
 }
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -679,6 +686,17 @@ function toast(msg,err=false){
 // Enter tuşu
 document.getElementById('loginUser').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginPass').focus();});
 document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+// ── Thead top pozisyonunu dinamik hesapla ──
+function fixStickyTop(){
+  const hdr=document.querySelector('header');
+  const stats=document.querySelector('.stats-bar');
+  const toolbar=document.querySelector('.toolbar');
+  if(!hdr||!stats||!toolbar) return;
+  const top=hdr.offsetHeight+stats.offsetHeight+toolbar.offsetHeight;
+  document.querySelectorAll('thead th').forEach(th=>th.style.top=top+'px');
+}
+window.addEventListener('resize',fixStickyTop);
 </script>
 </body>
 </html>
