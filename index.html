@@ -3,163 +3,152 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>2023 Deprem Hasar Takip Sistemi</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-/* ══════════════ BEYAZ TEMA ══════════════ */
+/* ══ BEYAZ TEMA ══ */
 :root{
-  --bg:#f5f5f0;
+  --bg:#f4f3f0;
   --surface:#ffffff;
-  --surface2:#f0ede8;
-  --border:#ddd9d3;
-  --border2:#c8c4be;
+  --surface2:#eeece8;
+  --border:#dbd8d2;
+  --border2:#c5c2bc;
   --accent:#e85d26;
-  --accent2:#d4420e;
-  --text:#1a1a1a;
+  --accent2:#c94e1e;
+  --text:#1c1a18;
   --muted:#7a7670;
-  --agir:#d42020;
-  --orta:#d4820a;
-  --hafif:#0a82b4;
-  --hasarsiz:#1a9e50;
-  --yikilmis:#6020b0;
-  --shadow:0 1px 4px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.06);
+  --header-h:60px;
+
+  /* Hasar renkleri */
+  --c-yikik:#8b1a1a;
+  --c-agir:#d42020;
+  --c-orta:#c87010;
+  --c-acil:#6b1fb8;
+
+  --shadow:0 1px 4px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.05);
 }
+
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{
   background:var(--bg);color:var(--text);
   font-family:'IBM Plex Sans',sans-serif;
   min-height:100vh;overflow-x:hidden;
   -webkit-text-size-adjust:100%;
-  touch-action:pan-x pan-y;
 }
 
 /* ─── LOGIN ─── */
 #loginScreen{
   position:fixed;inset:0;
-  background:linear-gradient(135deg,#fff5f0 0%,#fff8f5 40%,#f5f0eb 100%);
-  display:flex;align-items:center;justify-content:center;z-index:1000;overflow-y:auto;
+  background:linear-gradient(135deg,#fffaf7 0%,#fff6f2 50%,#f5f0eb 100%);
+  display:flex;align-items:center;justify-content:center;
+  z-index:1000;overflow-y:auto;
 }
-.login-bg{
-  position:absolute;inset:0;
-  background:radial-gradient(ellipse 55% 45% at 15% 85%,rgba(232,93,38,.10) 0%,transparent 65%),
-             radial-gradient(ellipse 45% 55% at 85% 15%,rgba(232,93,38,.06) 0%,transparent 65%);
-  pointer-events:none;
-}
-.login-grid{
-  position:absolute;inset:0;
-  background-image:linear-gradient(rgba(200,196,190,.4) 1px,transparent 1px),
-                   linear-gradient(90deg,rgba(200,196,190,.4) 1px,transparent 1px);
-  background-size:36px 36px;pointer-events:none;
-}
+.login-bg{position:absolute;inset:0;background:radial-gradient(ellipse 55% 45% at 15% 85%,rgba(232,93,38,.11) 0%,transparent 65%),radial-gradient(ellipse 45% 55% at 85% 15%,rgba(232,93,38,.06) 0%,transparent 65%);pointer-events:none;}
+.login-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(200,196,190,.4) 1px,transparent 1px),linear-gradient(90deg,rgba(200,196,190,.4) 1px,transparent 1px);background-size:36px 36px;pointer-events:none;}
 .login-box{
-  position:relative;width:420px;max-width:96vw;
-  background:#fff;
-  border:1px solid var(--border);
-  border-top:4px solid var(--accent);
-  padding:44px 38px 38px;
-  box-shadow:var(--shadow);
-  animation:slideUp .5s cubic-bezier(.16,1,.3,1) both;
-  margin:20px auto;
+  position:relative;width:420px;max-width:94vw;
+  background:#fff;border:1px solid var(--border);border-top:4px solid var(--accent);
+  padding:44px 38px 38px;box-shadow:var(--shadow);
+  animation:slideUp .45s cubic-bezier(.16,1,.3,1) both;margin:20px auto;
 }
 @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 .login-logo{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:4px;color:var(--accent);margin-bottom:8px;}
-.login-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;line-height:1.1;margin-bottom:4px;color:var(--text);}
+.login-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;line-height:1.1;margin-bottom:4px;}
 .login-sub{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:28px;border-left:3px solid var(--accent);padding-left:10px;}
 .field{margin-bottom:16px;}
 .field label{display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:6px;}
-.field input{
+.field input[type=text],.field input[type=password]{
   width:100%;background:var(--bg);border:1px solid var(--border);
   color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:16px;
   padding:11px 14px;outline:none;transition:border-color .2s,box-shadow .2s;
   -webkit-appearance:none;border-radius:0;
 }
 .field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,93,38,.12);}
-.field input::placeholder{color:var(--muted);opacity:.5;font-size:14px;}
+.field input::placeholder{color:var(--muted);opacity:.45;font-size:14px;}
+
+/* Parola hatırla checkbox */
+.remember-row{display:flex;align-items:center;gap:10px;margin-bottom:4px;cursor:pointer;padding:4px 0;}
+.remember-row input[type=checkbox]{
+  width:18px;height:18px;cursor:pointer;
+  accent-color:var(--accent);flex-shrink:0;
+}
+.remember-row span{font-size:13px;color:var(--muted);user-select:none;}
+
 .login-btn{
   width:100%;background:var(--accent);color:#fff;border:none;
   font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;
-  padding:14px;cursor:pointer;transition:background .2s,transform .1s;margin-top:8px;
+  padding:14px;cursor:pointer;transition:background .2s,transform .1s;margin-top:12px;
   -webkit-appearance:none;border-radius:0;
 }
 .login-btn:hover{background:var(--accent2);}
 .login-btn:active{transform:scale(.98);}
 .login-btn:disabled{opacity:.5;cursor:not-allowed;}
-.login-error{color:var(--agir);font-size:11px;font-family:'IBM Plex Mono',monospace;margin-top:10px;display:none;padding:8px 10px;background:rgba(212,32,32,.06);border:1px solid rgba(212,32,32,.2);}
+.login-error{color:#c42020;font-size:11px;font-family:'IBM Plex Mono',monospace;margin-top:10px;display:none;padding:8px 10px;background:rgba(196,32,32,.06);border:1px solid rgba(196,32,32,.2);}
 .login-corner{position:absolute;bottom:-1px;right:-1px;width:20px;height:20px;border-bottom:3px solid var(--accent);border-right:3px solid var(--accent);}
-
 .spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px;}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* ─── APP ─── */
 #app{display:none;}
+
 header{
   background:#fff;border-bottom:1px solid var(--border);
-  padding:0 28px;display:flex;align-items:center;justify-content:space-between;
-  height:60px;position:sticky;top:0;z-index:100;
-  box-shadow:0 1px 0 var(--border),0 2px 8px rgba(0,0,0,.04);
+  padding:0 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  height:var(--header-h);
+  position:sticky;top:0;z-index:200;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
 }
 .header-brand{font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:2px;color:var(--text);}
 .header-brand span{color:var(--accent);}
-.header-tag{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);background:var(--bg);border:1px solid var(--border);padding:3px 8px;letter-spacing:1px;margin-left:12px;}
+.header-tag{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);background:var(--bg);border:1px solid var(--border);padding:3px 8px;letter-spacing:1px;margin-left:10px;}
 .header-right{display:flex;align-items:center;gap:8px;}
-.refresh-btn{
-  background:transparent;border:1px solid var(--border);color:var(--muted);
-  font-size:16px;width:34px;height:34px;cursor:pointer;transition:all .2s;
-  display:flex;align-items:center;justify-content:center;
-}
+.refresh-btn{background:transparent;border:1px solid var(--border);color:var(--muted);font-size:17px;width:36px;height:36px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;}
 .refresh-btn:hover{border-color:var(--accent);color:var(--accent);}
-.logout-btn{
-  background:transparent;border:1px solid var(--border);color:var(--muted);
-  font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px 14px;
-  cursor:pointer;transition:all .2s;letter-spacing:1px;
-}
-.logout-btn:hover{border-color:var(--agir);color:var(--agir);}
+.logout-btn{background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px 13px;cursor:pointer;transition:all .2s;letter-spacing:.5px;}
+.logout-btn:hover{border-color:#c42020;color:#c42020;}
 
 /* ─── STAT KARTLARI ─── */
 .stats-bar{
-  display:grid;grid-template-columns:repeat(5,1fr);
-  gap:1px;background:var(--border);border-bottom:1px solid var(--border);
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:1px;background:var(--border);
+  border-bottom:1px solid var(--border);
 }
 .stat-card{
-  background:#fff;padding:18px 20px;position:relative;overflow:hidden;
-  cursor:pointer;transition:background .18s,transform .12s;
-  user-select:none;
+  background:#fff;padding:16px 18px;position:relative;overflow:hidden;
+  cursor:pointer;transition:background .15s,box-shadow .15s;user-select:none;
 }
-.stat-card:hover{background:var(--surface2);}
-.stat-card:active{transform:scale(.97);}
-.stat-card.active-filter{background:var(--surface2);}
-.stat-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;}
-.stat-card::after{
-  content:'';position:absolute;bottom:0;left:0;right:0;height:0;
-  background:currentColor;transition:height .18s;opacity:.06;
-}
-.stat-card:hover::after,.stat-card.active-filter::after{height:100%;}
-.stat-card.agir::before{background:var(--agir);}
-.stat-card.orta::before{background:var(--orta);}
-.stat-card.hafif::before{background:var(--hafif);}
-.stat-card.hasarsiz::before{background:var(--hasarsiz);}
-.stat-card.total::before{background:var(--accent);}
-.stat-card.active-filter{box-shadow:inset 0 -3px 0 currentColor;}
-.stat-card.agir.active-filter{box-shadow:inset 0 -3px 0 var(--agir);}
-.stat-card.orta.active-filter{box-shadow:inset 0 -3px 0 var(--orta);}
-.stat-card.hafif.active-filter{box-shadow:inset 0 -3px 0 var(--hafif);}
-.stat-card.hasarsiz.active-filter{box-shadow:inset 0 -3px 0 var(--hasarsiz);}
-.stat-card.total.active-filter{box-shadow:inset 0 -3px 0 var(--accent);}
-.stat-num{font-family:'Bebas Neue',sans-serif;font-size:36px;line-height:1;margin-bottom:3px;position:relative;}
-.stat-card.agir .stat-num{color:var(--agir);}
-.stat-card.orta .stat-num{color:var(--orta);}
-.stat-card.hafif .stat-num{color:var(--hafif);}
-.stat-card.hasarsiz .stat-num{color:var(--hasarsiz);}
-.stat-card.total .stat-num{color:var(--accent);}
-.stat-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-family:'IBM Plex Mono',monospace;position:relative;}
-.stat-hint{font-size:9px;color:var(--muted);opacity:.5;font-family:'IBM Plex Mono',monospace;margin-top:4px;position:relative;}
+.stat-card:hover{background:#fdf9f7;}
+.stat-card:active{transform:scale(.98);}
+.stat-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;}
+.stat-card.s-yikik::before{background:var(--c-yikik);}
+.stat-card.s-agir::before{background:var(--c-agir);}
+.stat-card.s-orta::before{background:var(--c-orta);}
+.stat-card.s-acil::before{background:var(--c-acil);}
+.stat-card.s-total::before{background:var(--accent);}
+
+.stat-card.active-filter{background:var(--surface2);box-shadow:inset 0 -3px 0 var(--accent);}
+.stat-card.s-yikik.active-filter{box-shadow:inset 0 -3px 0 var(--c-yikik);}
+.stat-card.s-agir.active-filter{box-shadow:inset 0 -3px 0 var(--c-agir);}
+.stat-card.s-orta.active-filter{box-shadow:inset 0 -3px 0 var(--c-orta);}
+.stat-card.s-acil.active-filter{box-shadow:inset 0 -3px 0 var(--c-acil);}
+
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:34px;line-height:1;margin-bottom:2px;}
+.stat-card.s-yikik .stat-num{color:var(--c-yikik);}
+.stat-card.s-agir .stat-num{color:var(--c-agir);}
+.stat-card.s-orta .stat-num{color:var(--c-orta);}
+.stat-card.s-acil .stat-num{color:var(--c-acil);}
+.stat-card.s-total .stat-num{color:var(--accent);}
+
+.stat-label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+.stat-hint{font-size:9px;color:var(--muted);opacity:.45;margin-top:3px;font-family:'IBM Plex Mono',monospace;}
 
 /* ─── TOOLBAR ─── */
 .toolbar{
-  display:flex;align-items:center;gap:10px;padding:14px 28px;
-  flex-wrap:wrap;border-bottom:1px solid var(--border);background:#fff;
+  display:flex;align-items:center;gap:8px;
+  padding:12px 24px;flex-wrap:wrap;
+  border-bottom:1px solid var(--border);background:#fff;
 }
 .search-box{flex:1;min-width:180px;position:relative;}
 .search-box input{
@@ -170,86 +159,82 @@ header{
 }
 .search-box input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,93,38,.1);}
 .search-box::before{content:'⌕';position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:17px;pointer-events:none;}
+
 .filter-select{
   background:var(--bg);border:1px solid var(--border);color:var(--text);
   font-family:'IBM Plex Sans',sans-serif;font-size:14px;
-  padding:9px 12px;outline:none;cursor:pointer;transition:border-color .2s;
-  min-width:145px;-webkit-appearance:none;border-radius:0;
+  padding:9px 10px;outline:none;cursor:pointer;
+  min-width:130px;-webkit-appearance:none;border-radius:0;
+  transition:border-color .2s;
 }
 .filter-select:focus{border-color:var(--accent);}
+
 .clear-filter-btn{
   background:var(--accent);color:#fff;border:none;
-  font-family:'IBM Plex Mono',monospace;font-size:11px;padding:9px 14px;
-  cursor:pointer;transition:background .2s;white-space:nowrap;display:none;letter-spacing:.5px;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;
+  padding:9px 14px;cursor:pointer;white-space:nowrap;
+  display:none;letter-spacing:.5px;transition:background .2s;
 }
 .clear-filter-btn:hover{background:var(--accent2);}
 .clear-filter-btn.visible{display:block;}
 .record-count{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-left:auto;white-space:nowrap;}
 
 /* ─── TABLE ─── */
-.table-wrap{padding:0 28px 32px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.table-wrap{padding:0 24px 40px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 table{width:100%;border-collapse:collapse;font-size:13px;}
+
+/* Başlıklar sticky — header yüksekliği kadar aşağıda */
 thead th{
-  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;
+  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.5px;
   text-transform:uppercase;color:var(--muted);
-  padding:12px 14px;text-align:left;
-  border-bottom:2px solid var(--border);
-  background:#fff;
-  cursor:pointer;white-space:nowrap;user-select:none;transition:color .2s;
-  position:sticky;top:60px;z-index:10;
+  padding:11px 12px;text-align:left;
+  background:#fff;border-bottom:2px solid var(--border);
+  cursor:pointer;white-space:nowrap;user-select:none;
+  position:sticky;top:var(--header-h);z-index:10;
+  transition:color .15s;
 }
 thead th:hover{color:var(--accent);}
 thead th.sorted{color:var(--accent);}
-tbody tr{border-bottom:1px solid var(--border);transition:background .12s;}
+
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
 tbody tr:hover{background:var(--surface2);}
-tbody td{padding:12px 14px;color:var(--text);}
+tbody td{padding:11px 12px;color:var(--text);vertical-align:middle;}
+tbody td.td-no{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--border2);text-align:right;padding-right:8px;width:40px;}
 tbody td.mono{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
+
+/* Hasar badge */
 .badge{
   display:inline-block;font-family:'IBM Plex Mono',monospace;
   font-size:10px;letter-spacing:.5px;padding:3px 9px;
   border:1px solid;text-transform:uppercase;white-space:nowrap;font-weight:600;
 }
-.badge-agir{color:var(--agir);border-color:rgba(212,32,32,.3);background:rgba(212,32,32,.07);}
-.badge-orta{color:var(--orta);border-color:rgba(212,130,10,.3);background:rgba(212,130,10,.07);}
-.badge-hafif{color:var(--hafif);border-color:rgba(10,130,180,.3);background:rgba(10,130,180,.07);}
-.badge-hasarsiz{color:var(--hasarsiz);border-color:rgba(26,158,80,.3);background:rgba(26,158,80,.07);}
-.badge-yikilmis{color:var(--yikilmis);border-color:rgba(96,32,176,.3);background:rgba(96,32,176,.07);}
-.badge-diger{color:var(--muted);border-color:var(--border);background:transparent;}
+.badge-yikik  {color:var(--c-yikik);border-color:rgba(139,26,26,.3);background:rgba(139,26,26,.07);}
+.badge-agir   {color:var(--c-agir); border-color:rgba(212,32,32,.3); background:rgba(212,32,32,.07);}
+.badge-orta   {color:var(--c-orta); border-color:rgba(200,112,16,.3);background:rgba(200,112,16,.07);}
+.badge-acil   {color:var(--c-acil); border-color:rgba(107,31,184,.3);background:rgba(107,31,184,.07);}
+.badge-diger  {color:var(--muted);  border-color:var(--border);       background:transparent;}
 
 /* Empty */
-.empty-state{text-align:center;padding:70px 28px;display:none;}
-.empty-icon{font-size:44px;margin-bottom:14px;opacity:.25;}
+.empty-state{text-align:center;padding:70px 24px;display:none;}
+.empty-icon{font-size:44px;margin-bottom:14px;opacity:.2;}
 .empty-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--muted);margin-bottom:6px;}
 .empty-sub{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);opacity:.6;}
 
-/* ─── LOADING ─── */
-#loadingOverlay{
-  position:fixed;inset:0;
-  background:rgba(245,245,240,.92);
-  display:none;align-items:center;justify-content:center;
-  z-index:3000;flex-direction:column;gap:14px;backdrop-filter:blur(4px);
-}
+/* Loading */
+#loadingOverlay{position:fixed;inset:0;background:rgba(244,243,240,.92);display:none;align-items:center;justify-content:center;z-index:3000;flex-direction:column;gap:14px;backdrop-filter:blur(4px);}
 .ld-spin{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
 .ld-text{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:3px;}
 
 /* Toast */
-#toast{
-  position:fixed;bottom:24px;right:24px;
-  background:#fff;border:1px solid var(--border);
-  border-left:3px solid var(--accent);
-  font-family:'IBM Plex Mono',monospace;font-size:11px;
-  padding:11px 16px;z-index:9999;opacity:0;
-  transform:translateY(10px);transition:all .3s;
-  pointer-events:none;max-width:340px;line-height:1.5;
-  box-shadow:var(--shadow);color:var(--text);
-}
+#toast{position:fixed;bottom:24px;right:24px;background:#fff;border:1px solid var(--border);border-left:3px solid var(--accent);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:11px 16px;z-index:9999;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;max-width:340px;line-height:1.5;box-shadow:var(--shadow);color:var(--text);}
 #toast.show{opacity:1;transform:translateY(0);}
-#toast.err{border-left-color:var(--agir);}
+#toast.err{border-left-color:#c42020;}
 
-@media(max-width:700px){
-  .stats-bar{grid-template-columns:repeat(3,1fr);}
-  .toolbar,.table-wrap{padding-left:14px;padding-right:14px;}
-  header{padding:0 14px;}
+@media(max-width:680px){
+  .stats-bar{grid-template-columns:repeat(2,1fr);}
+  .toolbar{padding:10px 12px;}
+  .table-wrap{padding:0 0 40px;}
+  header{padding:0 12px;}
   .header-tag{display:none;}
   .stat-hint{display:none;}
 }
@@ -257,7 +242,7 @@ tbody td.mono{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--m
 </head>
 <body>
 
-<!-- ─── GİRİŞ EKRANI ─── -->
+<!-- ─── GİRİŞ ─── -->
 <div id="loginScreen">
   <div class="login-bg"></div>
   <div class="login-grid"></div>
@@ -267,13 +252,17 @@ tbody td.mono{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--m
     <div class="login-sub">Kahramanmaraş Merkezli Depremler · Güvenli Erişim</div>
     <div class="field">
       <label>Kullanıcı Adı</label>
-      <input type="text" id="loginUser" placeholder="kullanıcı adı" autocomplete="off" spellcheck="false" inputmode="text">
+      <input type="text" id="loginUser" placeholder="kullanıcı adı" autocomplete="username" spellcheck="false" inputmode="text">
     </div>
     <div class="field">
       <label>Parola</label>
       <input type="password" id="loginPass" placeholder="••••••" autocomplete="current-password">
     </div>
-    <button class="login-btn" id="loginBtn" onclick="doLogin()">GİRİŞ YAP & GİTHUB'TAN VERİ YÜKLE</button>
+    <label class="remember-row">
+      <input type="checkbox" id="rememberMe">
+      <span>Beni hatırla — kullanıcı adı ve parolayı kaydet</span>
+    </label>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">GİRİŞ YAP & VERİ YÜKLE</button>
     <div class="login-error" id="loginError"></div>
     <div class="login-corner"></div>
   </div>
@@ -285,7 +274,7 @@ tbody td.mono{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--m
   <div class="ld-text">GİTHUB'TAN VERİLER YÜKLENİYOR...</div>
 </div>
 
-<!-- ─── ANA UYGULAMA ─── -->
+<!-- ─── APP ─── -->
 <div id="app">
   <header>
     <div style="display:flex;align-items:center">
@@ -298,31 +287,26 @@ tbody td.mono{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--m
     </div>
   </header>
 
-  <!-- İstatistik Kartları — tıklanabilir -->
+  <!-- Stat kartları — 4 kategori -->
   <div class="stats-bar">
-    <div class="stat-card total" onclick="filterByCard('')" id="card-total" title="Tümünü göster">
-      <div class="stat-num" id="sTotal">0</div>
-      <div class="stat-label">Toplam</div>
-      <div class="stat-hint">tümü</div>
+    <div class="stat-card s-yikik" id="card-yikik" onclick="filterByCard('yikik')" title="Yıkık binaları listele">
+      <div class="stat-num" id="sYikik">0</div>
+      <div class="stat-label">Yıkık</div>
+      <div class="stat-hint">filtrele ↓</div>
     </div>
-    <div class="stat-card agir" onclick="filterByCard('agir')" id="card-agir" title="Ağır hasarlıları filtrele">
+    <div class="stat-card s-agir" id="card-agir" onclick="filterByCard('agir')" title="Ağır hasarlıları listele">
       <div class="stat-num" id="sAgir">0</div>
       <div class="stat-label">Ağır Hasarlı</div>
       <div class="stat-hint">filtrele ↓</div>
     </div>
-    <div class="stat-card orta" onclick="filterByCard('orta')" id="card-orta" title="Orta hasarlıları filtrele">
+    <div class="stat-card s-orta" id="card-orta" onclick="filterByCard('orta')" title="Orta hasarlıları listele">
       <div class="stat-num" id="sOrta">0</div>
       <div class="stat-label">Orta Hasarlı</div>
       <div class="stat-hint">filtrele ↓</div>
     </div>
-    <div class="stat-card hafif" onclick="filterByCard('hafif')" id="card-hafif" title="Az hasarlıları filtrele">
-      <div class="stat-num" id="sHafif">0</div>
-      <div class="stat-label">Az Hasarlı</div>
-      <div class="stat-hint">filtrele ↓</div>
-    </div>
-    <div class="stat-card hasarsiz" onclick="filterByCard('hasarsiz')" id="card-hasarsiz" title="Hasarsız/diğer filtrele">
-      <div class="stat-num" id="sHasarsiz">0</div>
-      <div class="stat-label">Hasarsız/Diğer</div>
+    <div class="stat-card s-acil" id="card-acil" onclick="filterByCard('acil')" title="Acil yıktırılacakları listele">
+      <div class="stat-num" id="sAcil">0</div>
+      <div class="stat-label">Acil Yıktırılacak</div>
       <div class="stat-hint">filtrele ↓</div>
     </div>
   </div>
@@ -335,13 +319,12 @@ tbody td.mono{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--m
     <select class="filter-select" id="semtFilter" onchange="applyFilters()">
       <option value="">Tüm Semtler</option>
     </select>
-    <select class="filter-select" id="hasarFilter" onchange="applyFilters()">
-      <option value="">Tüm Hasar Durumları</option>
+    <select class="filter-select" id="hasarFilter" onchange="onDropdownChange()">
+      <option value="">Tüm Kategoriler</option>
+      <option value="yikik">Yıkık</option>
       <option value="agir">Ağır Hasarlı</option>
       <option value="orta">Orta Hasarlı</option>
-      <option value="hafif">Az Hasarlı</option>
-      <option value="hasarsiz">Hasarsız</option>
-      <option value="yikilmis">Yıkılmış</option>
+      <option value="acil">Acil Yıktırılacak</option>
     </select>
     <button class="clear-filter-btn" id="clearBtn" onclick="clearFilters()">✕ FİLTREYİ TEMİZLE</button>
     <div class="record-count" id="recordCount">— kayıt</div>
@@ -351,6 +334,7 @@ tbody td.mono{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--m
   <div class="table-wrap">
     <table>
       <thead><tr>
+        <th style="width:40px;text-align:right;">#</th>
         <th onclick="srt('semt')">SEMT ↕</th>
         <th onclick="srt('abone')">ABONE NO ↕</th>
         <th onclick="srt('binaKod')">BİNA KODU ↕</th>
@@ -370,37 +354,81 @@ tbody td.mono{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--m
 <div id="toast"></div>
 
 <script>
-// ════════════════════════════════════════════════════
-// KİMLİK BİLGİLERİ — XOR kodlama ile gizlenmiş
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════════════
+// KİMLİK — XOR gizleme
+// ════════════════════════════════════════════════
 (function(){
-  const _k=37;
-  const _d={
-    u:[65,76,92,68,87,71,68,78,276,87],
-    p:[77,68,86,68,87],
+  const k=37;
+  const d={
+    u:[65,76,92,68,87,71,68,78,276,87],   // diyarbakır
+    p:[77,68,86,68,87],                    // hasar
     gh:[77,81,81,85,86,31,10,10,87,68,82,11,66,76,81,77,80,71,80,86,64,87,70,74,75,81,64,75,81,11,70,74,72,10,86,64,71,68,86,72,74,71,76,73,10,77,68,86,68,87,10,72,68,76,75,10,77,68,86,68,87,11,93,73,86,93]
   };
-  const dec=arr=>arr.map(c=>String.fromCharCode(c^_k)).join('');
-  window._auth={u:dec(_d.u),p:dec(_d.p),gh:dec(_d.gh)};
+  const dec=a=>a.map(c=>String.fromCharCode(c^k)).join('');
+  window._auth={u:dec(d.u),p:dec(d.p),gh:dec(d.gh)};
 })();
 
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════════════
+// PAROLA HATIRLA
+// ════════════════════════════════════════════════
+(function initRemember(){
+  try{
+    const saved=JSON.parse(localStorage.getItem('_ht_rem')||'null');
+    if(saved&&saved.u&&saved.p){
+      document.getElementById('loginUser').value=saved.u;
+      document.getElementById('loginPass').value=saved.p;
+      document.getElementById('rememberMe').checked=true;
+    }
+  }catch(e){}
+})();
+
+function saveRemember(){
+  try{
+    if(document.getElementById('rememberMe').checked){
+      // Basit karıştırma — düz metin saklamıyoruz
+      const u=document.getElementById('loginUser').value;
+      const p=document.getElementById('loginPass').value;
+      const enc=v=>btoa(unescape(encodeURIComponent(v)));
+      localStorage.setItem('_ht_rem',JSON.stringify({u:enc(u),p:enc(p)}));
+    }else{
+      localStorage.removeItem('_ht_rem');
+    }
+  }catch(e){}
+}
+
+// Parola okunurken decode
+(function patchRemember(){
+  try{
+    const raw=JSON.parse(localStorage.getItem('_ht_rem')||'null');
+    if(!raw) return;
+    const dec=v=>{try{return decodeURIComponent(escape(atob(v)));}catch{return v;}};
+    // Eğer base64 ise decode et
+    const u2=dec(raw.u), p2=dec(raw.p);
+    if(u2!==raw.u||p2!==raw.p){
+      document.getElementById('loginUser').value=u2;
+      document.getElementById('loginPass').value=p2;
+    }
+  }catch(e){}
+})();
+
+// ════════════════════════════════════════════════
 // STATE
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════════════
 let allData=[],filtered=[],sortKey='',sortAsc=true,activeCard='';
 
-// ════════════════════════════════════════════════════
-// GİRİŞ
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════════════
+// GİRİŞ / ÇIKIŞ
+// ════════════════════════════════════════════════
 async function doLogin(){
   const u=norm(document.getElementById('loginUser').value);
   const p=document.getElementById('loginPass').value;
   if(u!==_auth.u||p!==_auth.p){
     showErr('loginError','❌ Kullanıcı adı veya parola hatalı.');
     document.getElementById('loginPass').value='';
+    localStorage.removeItem('_ht_rem');
     return;
   }
-  document.getElementById('loginPass').value='';
+  saveRemember();
   const btn=document.getElementById('loginBtn');
   btn.disabled=true;
   btn.innerHTML='<span class="spinner"></span>GİTHUB\'TAN YÜKLÜYOR...';
@@ -411,29 +439,39 @@ async function doLogin(){
     document.getElementById('app').style.display='block';
     buildFilters();
     applyFilters();
-    toast('✅ Veriler yüklendi — '+allData.length.toLocaleString('tr')+' kayıt.');
+    toast('✅ '+allData.length.toLocaleString('tr')+' kayıt yüklendi.');
   }catch(e){
     showErr('loginError','❌ Veri yüklenemedi: '+e.message);
   }finally{
     btn.disabled=false;
-    btn.innerHTML='GİRİŞ YAP & GİTHUB\'TAN VERİ YÜKLE';
+    btn.innerHTML='GİRİŞ YAP & VERİ YÜKLE';
     loading(false);
   }
 }
 
-function norm(s){return s.trim().toLowerCase().replace(/i̇/g,'i').replace(/İ/g,'i');}
+function norm(s){
+  return s.trim().toLowerCase()
+    .replace(/İ/g,'i').replace(/I/g,'ı')
+    .replace(/Ş/g,'ş').replace(/Ğ/g,'ğ')
+    .replace(/Ü/g,'ü').replace(/Ö/g,'ö')
+    .replace(/Ç/g,'ç');
+}
 
 function doLogout(){
   allData=[];filtered=[];sortKey='';sortAsc=true;activeCard='';
   document.getElementById('app').style.display='none';
   document.getElementById('loginScreen').style.display='flex';
-  document.getElementById('loginUser').value='';
   document.getElementById('tableBody').innerHTML='';
+  // Parola hatırla işaretliyse kullanıcı adı/parola kalsın
+  if(!document.getElementById('rememberMe').checked){
+    document.getElementById('loginUser').value='';
+    document.getElementById('loginPass').value='';
+  }
 }
 
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════════════
 // VERİ ÇEKME
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════════════
 async function fetchXlsx(url){
   const r=await fetch(url+'?_='+Date.now());
   if(!r.ok) throw new Error('HTTP '+r.status);
@@ -467,15 +505,18 @@ function csvSplit(line){
   r.push(c);return r;
 }
 
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════════════
 // ALAN OKUYUCU
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════════════
 function getF(row){
   const pick=(...keys)=>{
-    for(const k of keys) if(row[k]!==undefined&&String(row[k]).trim()!=='') return String(row[k]).trim();
-    const lk=keys.map(k=>k.toLowerCase().replace(/\s/g,''));
+    for(const k of keys){
+      if(row[k]!==undefined&&String(row[k]).trim()!=='') return String(row[k]).trim();
+    }
+    const lk=keys.map(k=>k.toLowerCase().replace(/[\s_]/g,''));
     for(const rk of Object.keys(row)){
-      if(lk.includes(rk.toLowerCase().replace(/\s/g,''))&&String(row[rk]).trim()!=='') return String(row[rk]).trim();
+      if(lk.includes(rk.toLowerCase().replace(/[\s_]/g,''))&&String(row[rk]).trim()!=='')
+        return String(row[rk]).trim();
     }
     return '—';
   };
@@ -488,54 +529,60 @@ function getF(row){
   };
 }
 
+// ── Hasar kategorisi ──
+// Sadece: YIKIK | AĞIR HASARLI | ORTA HASARLI | ACİL YIKTIRILACAK
 function hasarKey(v){
   if(!v||v==='—') return 'diger';
-  const s=v.toLowerCase();
-  if(s.includes('ağır')||s.includes('agir')) return 'agir';
-  if(s.includes('orta'))                     return 'orta';
-  if(s.includes('az ')||s.includes('hafif')) return 'hafif';
-  if(s.includes('hasarsız')||s.includes('hasarsiz')) return 'hasarsiz';
-  if(s.includes('yık')||s.includes('yikilmis'))      return 'yikilmis';
+  const s=v.toUpperCase()
+    .replace(/İ/g,'I').replace(/Ş/g,'S').replace(/Ğ/g,'G')
+    .replace(/Ü/g,'U').replace(/Ö/g,'O').replace(/Ç/g,'C')
+    .trim();
+
+  if(s.includes('ACIL')||s.includes('YIKTIRILACAK')) return 'acil';
+  if(s.includes('AGIR')||s.includes('AĞIR'))         return 'agir';
+  if(s.includes('ORTA'))                              return 'orta';
+  if(s==='YIKIK'||s.includes('YIKIK'))               return 'yikik';
   return 'diger';
 }
 
-// ════════════════════════════════════════════════════
+const HASAR_LABEL={
+  yikik:'YIKIK',
+  agir:'AĞIR HASARLI',
+  orta:'ORTA HASARLI',
+  acil:'ACİL YIKTIRILACAK',
+  diger:'DİĞER',
+};
+
+// ════════════════════════════════════════════════
 // STAT KART FİLTRESİ
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════════════
 function filterByCard(key){
-  // Aynı karta tekrar tıklanırsa filtreyi kaldır
-  if(activeCard===key && key!==''){
-    activeCard='';
-    document.getElementById('hasarFilter').value='';
-  } else {
-    activeCard=key;
-    document.getElementById('hasarFilter').value=key;
-  }
+  if(activeCard===key){activeCard='';document.getElementById('hasarFilter').value='';}
+  else{activeCard=key;document.getElementById('hasarFilter').value=key;}
+  updateCardStyles();
+  applyFilters();
+}
+
+function onDropdownChange(){
+  activeCard=document.getElementById('hasarFilter').value;
   updateCardStyles();
   applyFilters();
 }
 
 function updateCardStyles(){
-  const cards=['total','agir','orta','hafif','hasarsiz'];
-  cards.forEach(c=>{
+  ['yikik','agir','orta','acil'].forEach(c=>{
     const el=document.getElementById('card-'+c);
-    if(!el) return;
-    el.classList.remove('active-filter');
-    const match = c==='total' ? activeCard==='' : activeCard===c;
-    if(match) el.classList.add('active-filter');
+    if(el) el.classList.toggle('active-filter',activeCard===c);
   });
 }
 
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════════════
 // FİLTRE / SIRALAMA
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════════════
 function applyFilters(){
   const q=(document.getElementById('searchInput').value||'').toLowerCase();
   const semt=document.getElementById('semtFilter').value;
   const hasar=document.getElementById('hasarFilter').value;
-
-  // activeCard'ı dropdown ile senkronize et
-  if(hasar!==activeCard){activeCard=hasar;updateCardStyles();}
 
   filtered=allData.filter(row=>{
     const f=getF(row);
@@ -553,10 +600,8 @@ function applyFilters(){
     });
   }
 
-  // Filtre temizle butonu
-  const hasFilter=q||semt||hasar;
-  document.getElementById('clearBtn').classList.toggle('visible',!!hasFilter);
-
+  const hasF=q||semt||hasar;
+  document.getElementById('clearBtn').classList.toggle('visible',!!hasF);
   updateStats();
   renderTable();
 }
@@ -571,7 +616,7 @@ function clearFilters(){
 }
 
 function srt(key){
-  if(sortKey===key) sortAsc=!sortAsc; else{sortKey=key;sortAsc=true;}
+  if(sortKey===key)sortAsc=!sortAsc;else{sortKey=key;sortAsc=true;}
   applyFilters();
 }
 
@@ -581,31 +626,30 @@ function buildFilters(){
 }
 
 function updateStats(){
-  const c={agir:0,orta:0,hafif:0,hasarsiz:0};
+  const c={yikik:0,agir:0,orta:0,acil:0};
   allData.forEach(r=>{
     const k=hasarKey(getF(r).hasar);
-    if(k==='agir')c.agir++;else if(k==='orta')c.orta++;else if(k==='hafif')c.hafif++;else c.hasarsiz++;
+    if(c[k]!==undefined) c[k]++;
   });
-  document.getElementById('sTotal').textContent=allData.length.toLocaleString('tr');
-  document.getElementById('sAgir').textContent=c.agir.toLocaleString('tr');
-  document.getElementById('sOrta').textContent=c.orta.toLocaleString('tr');
-  document.getElementById('sHafif').textContent=c.hafif.toLocaleString('tr');
-  document.getElementById('sHasarsiz').textContent=c.hasarsiz.toLocaleString('tr');
+  document.getElementById('sYikik').textContent=c.yikik.toLocaleString('tr');
+  document.getElementById('sAgir').textContent =c.agir.toLocaleString('tr');
+  document.getElementById('sOrta').textContent =c.orta.toLocaleString('tr');
+  document.getElementById('sAcil').textContent =c.acil.toLocaleString('tr');
 }
 
-// ════════════════════════════════════════════════════
-// RENDER — SAYFALAMA YOK, TÜMÜ GÖSTER
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════════════
+// RENDER — tümü tek sayfada, sıra numarasıyla
+// ════════════════════════════════════════════════
 function renderTable(){
   const tbody=document.getElementById('tableBody');
   const empty=document.getElementById('emptyState');
   document.getElementById('recordCount').textContent=filtered.length.toLocaleString('tr')+' kayıt';
   if(!filtered.length){tbody.innerHTML='';empty.style.display='block';return;}
   empty.style.display='none';
-  // Tüm satırları render et — sayfalama yok
-  tbody.innerHTML=filtered.map(row=>{
+  tbody.innerHTML=filtered.map((row,i)=>{
     const f=getF(row),k=hasarKey(f.hasar);
     return `<tr>
+      <td class="td-no">${i+1}</td>
       <td class="mono">${esc(f.semt)}</td>
       <td class="mono">${esc(f.abone)}</td>
       <td class="mono">${esc(f.binaKod)}</td>
@@ -617,9 +661,9 @@ function renderTable(){
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════════════
 // YARDIMCILAR
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════════════
 function showErr(id,msg){
   const el=document.getElementById(id);
   el.textContent=msg;el.style.display='block';
@@ -632,7 +676,7 @@ function toast(msg,err=false){
   clearTimeout(el._t);el._t=setTimeout(()=>el.className='',4000);
 }
 
-// Enter tuşları
+// Enter tuşu
 document.getElementById('loginUser').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginPass').focus();});
 document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 </script>
